@@ -1,11 +1,12 @@
 from flask import Flask, request, jsonify, render_template
-from google import genai
+from groq import Groq
 from dotenv import load_dotenv
 import PyPDF2
 import os
 
 load_dotenv()
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
 
 app = Flask(__name__)
 
@@ -51,11 +52,13 @@ def ask():
         
         Question: {question}
         """
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                    {"role": "user", "content": prompt}
+            ]
         )
-        answer = response.text
+        answer = response.choices[0].message.content
         chat_history.append((question, answer))
         return jsonify({"answer": answer})
     
